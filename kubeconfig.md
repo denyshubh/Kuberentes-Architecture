@@ -1,6 +1,15 @@
+### Kubeconfig files needed
+1. Kubeconfig for each worker nodes
+2. Kubeconfig for kube-proxy file
+3. Kubeconfig for kube-controller-manager
+4. Kubeconfig for kube-scheduler
+5. Kubeconfig for admin
+
+
 KUBERNETES_PUBLIC_ADDRESS=172.31.122.30
 
 ### 1. Generate a kubeconfig file for each worker node:
+```
 {
 for instance in ce589041881c.mylabserver.com 4b0a9a11df1c.mylabserver.com; do
   kubectl config set-cluster kubernetes-the-hard-way \
@@ -23,9 +32,10 @@ for instance in ce589041881c.mylabserver.com 4b0a9a11df1c.mylabserver.com; do
   kubectl config use-context default --kubeconfig=${instance}.kubeconfig
 done
 }
+```
 
 ### 2. Generate Kube-Proxy kubeconfig file
-
+```
 {
   kubectl config set-cluster kubernetes-the-hard-way \
     --certificate-authority=ca.pem \
@@ -46,10 +56,10 @@ done
 
   kubectl config use-context default --kubeconfig=kube-proxy.kubeconfig
 }
-
+```
 
 ### 3. Generate a kubeconfig file for the kube-controller-manager service:
-
+```
 {
   kubectl config set-cluster kubernetes-the-hard-way \
     --certificate-authority=ca.pem \
@@ -70,9 +80,9 @@ done
 
   kubectl config use-context default --kubeconfig=kube-controller-manager.kubeconfig
 }
-
+```
 ### 4. Generate a kubeconfig file for the kube-scheduler service:
-
+```
 {
   kubectl config set-cluster kubernetes-the-hard-way \
     --certificate-authority=ca.pem \
@@ -93,9 +103,9 @@ done
 
   kubectl config use-context default --kubeconfig=kube-scheduler.kubeconfig
 }
-
+```
 ### 5. Admin kubeconfig files
-
+```
 {
   kubectl config set-cluster kubernetes-the-hard-way \
     --certificate-authority=ca.pem \
@@ -116,9 +126,9 @@ done
 
   kubectl config use-context default --kubeconfig=admin.kubeconfig
 }
-
+```
 ### Distribute the kube configuration files
-
+```
 for instance in ce589041881c.mylabserver.com 4b0a9a11df1c.mylabserver.com; do
     scp ${instance}.kubeconfig kube-proxy.kubeconfig ${instance}:~/
 done
@@ -126,3 +136,4 @@ done
 for instance in 172.31.113.231 172.31.113.73; do
     scp admin.kubeconfig kube-controller-manager.kubeconfig kube-scheduler.kubeconfig ${instance}:~/
 done
+```
