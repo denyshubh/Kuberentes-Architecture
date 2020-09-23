@@ -87,37 +87,37 @@ A CSR or Certificate Signing request is a block of encoded text that is given to
 Name	                    Explanation	                                Examples
 | :-------------------------|:----------------------------------------:| --------------------------:
 Common Name	                FQDN of your server.                        *.google.com                
-|                           This must match exactly what you            mail.google.com             
-|                           type in your web browser or you will                                    
-|                           receive a name mismatch error.	                                        
+                           This must match exactly what you            mail.google.com             
+                           type in your web browser or you will                                    
+                           receive a name mismatch error.	                                        
 |                           |                                          |                            
 Organization	            The legal name of your organization.        Google Inc.                 
-|                           This should not be abbreviated and should                               
-|                           include suffixes such as Inc, Corp, or LLC.	                            
-|                                                                                                   
+                           This should not be abbreviated and should                               
+                           include suffixes such as Inc, Corp, or LLC.	                            
+                                                                                                   
 |                           |                                          |                            
 Organizational Unit	        The division of your organization handling  Information Technology      
-|                           the certificate.	                        IT Department               
-|                                                                                                   
+                           the certificate.	                        IT Department               
+                                                                                                   
 |                           |                                          |                            
 City/Locality	            The city where your organization is         Mountain View               
-|                           located.                                                                
-|                                                                                                   
+                           located.                                                                
+                                                                                                   
 |                           |                                          |                            
 State/County/Region	        The state/region where your organization    California                  
-|                           is located. This shouldn't be abbreviated.	                            
-|                                                                                                   
+                           is located. This shouldn't be abbreviated.	                            
+                                                                                                   
 |                           |                                          |                            
 Country	                    The two-letter ISO code for the country     IN                          
-|                           where your organization is location.	    US                          
-|                                                                                                   
+                           where your organization is location.	    US                          
+                                                                                                   
 |                           |                                          |                            
 Email address	            An email address used to contact your       webmaster@google.com        
-|                           organization.	                                                        
-|                                                                                                   
+                           organization.	                                                        
+                                                                                                   
 |                           |                                          |                            
 Public Key	                The public key that will go into the certificate.	                    
-|                           The public key is created automatically                                 
+                           The public key is created automatically                                 
 | :-------------------------|:----------------------------------------:| --------------------------:
 ### 6. Defining few terms used in cfssl 
 
