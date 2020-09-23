@@ -192,9 +192,9 @@ OUTPUT:
 
 #### These below are the three files generated
 
-ca-key.pem :    Root CA Private key. Keep it very safe!!
-ca.pem :   Root CA Public key
-ca.csr :    Certificate Signing Request
+ca-key.pem :___ Root CA Private key. Keep it very safe!!<br />
+ca.pem :___   Root CA Public key<br />
+ca.csr :___    Certificate Signing Request<br />
 
 
 Now we have our root CA which is the most important file. The root CA will allow us to generate intermediate certificates. Intermediate certificates can be used just like the CA to generate other intermediate certificates or to directly sign certificates and keys.
