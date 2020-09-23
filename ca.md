@@ -180,7 +180,7 @@ This will be used to create server or client certificates that can be used to se
     cfssl gencert -initca ca-csr.json | cfssljson -bare ca
 }
 ```
-
+```
 OUTPUT:
     [INFO] generating a new CA key and certificate from CSR
     [INFO] generate received request
@@ -188,6 +188,8 @@ OUTPUT:
     [INFO] generating key: rsa-2048
     [INFO] encoded CSR
     [INFO] signed certificate with serial number 575514558967771581279537545623874943296973655847
+```
+
 #### These below are the three files generated
 
 ca-key.pem :    Root CA Private key. Keep it very safe!!
