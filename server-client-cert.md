@@ -29,8 +29,8 @@ Kubernetes requires PKI for the following operations:
 
 #### 1.  The Admin Client Certificate
 
-1. We'll create an admin-csr.json file
-2. Use cfssl and cfssljson to generate certificate
+1. We'll create an admin-csr.json file<br/>
+2. Use cfssl and cfssljson to generate certificate<br/>
 
 ```
 {
@@ -60,6 +60,7 @@ Kubernetes requires PKI for the following operations:
 
 }
 ```
+```
 OUTPUT:
     [INFO] generate received request
     [INFO] received CSR
@@ -70,6 +71,7 @@ OUTPUT:
             websites. For more information see the Baseline Requirements for the Issuance and Management
             of Publicly-Trusted Certificates, v.1.1.6, from the CA/Browser Forum (https://cabforum.org);
             specifically, section 10.2.3 ("Information Requirements").
+```
 
 ### The Kubelet Client Certificates
 
@@ -80,6 +82,7 @@ Generate a certificate and private key for each Kubernetes worker node:
 
 ### 2. Kube-API server certificate
 
+```
 KUBERNETES_HOSTNAMES=kubernetes,kubernetes.default,kubernetes.default.svc,kubernetes.default.svc.cluster,kubernetes.svc.cluster.local
 CERT_HOSTNAME=10.32.0.1,172.31.113.231,23bcd35c4e1c.mylabserver.com,172.31.113.73,d29dca59cd1c.mylabserver.com,172.31.122.30,94fbee77961c.mylabserver.com
 
@@ -110,10 +113,11 @@ cfssl gencert \
   kubernetes-csr.json | cfssljson -bare kubernetes
 
 }
-
+```
 ### 3. kube-proxy client
-{
 
+```
+{
 cat > kube-proxy-csr.json <<EOF
 {
   "CN": "system:kube-proxy",
@@ -139,9 +143,11 @@ cfssl gencert \
   kube-proxy-csr.json | cfssljson -bare kube-proxy
 
 }
+```
 
 ### 4. service-account key pair 
 
+```
 {
 
 cat > service-account-csr.json <<EOF
@@ -169,8 +175,11 @@ cfssl gencert \
   service-account-csr.json | cfssljson -bare service-account
 
 }
+```
 
 ### 5. Worker Node Certificate
+
+```
 {
 declare -A dict
 dict+=([ce589041881c.mylabserver.com]=172.31.127.23 [4b0a9a11df1c.mylabserver.com]=172.31.118.38)
@@ -201,8 +210,12 @@ cfssl gencert \
 ${instance}-csr.json | cfssljson -bare ${instance}
 done
 }
+
+```
+
 ### 6. Kube-Controller
 
+```
 {
 cat > kube-controller-manager-csr.json <<EOF
 {
@@ -229,9 +242,11 @@ cfssl gencert \
   kube-controller-manager-csr.json | cfssljson -bare kube-controller-manager
 
 }
+```
 
 ### 7. kube schedular 
 
+```
 {
 
 cat > kube-scheduler-csr.json <<EOF
@@ -259,17 +274,19 @@ cfssl gencert \
   kube-scheduler-csr.json | cfssljson -bare kube-scheduler
 
 }
-
+```
 
 
 ### ----------------- COPY CERTS TO THEIR RESPECTIVE LOCATIONS -----------------
 
 1. COPY THE CERTS OF WORKER NODES
 
+```
 for instance in 172.31.113.231 172.31.113.73; do
     scp ca.pem ca-key.pem kubernetes-key.pem kubernetes.pem \
     service-account-key.pem service-account.pem ${instance}:~/
 done
+```
 
 
 
