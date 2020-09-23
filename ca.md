@@ -84,6 +84,7 @@ This will return a CA certificate and CA key that is valid for signing. The CA i
 A CSR or Certificate Signing request is a block of encoded text that is given to a Certificate Authority when applying for an SSL Certificate. It is usually generated on the server where the certificate will be installed and contains information that will be included in the certificate such as the organization name, common name (domain name), locality, and country. It also contains the public key that will be included in the certificate. A private key is usually created at the same time that you create the CSR, making a key pair.
 
 #### What is contained in a CSR?
+```
 Name	                    Explanation	                                Examples
 | :-------------------------|:----------------------------------------:| --------------------------:|
 Common Name	                FQDN of your server.                        *.google.com
@@ -118,7 +119,7 @@ Email address	            An email address used to contact your       webmaster@
 |                           |                                          | 
 Public Key	                The public key that will go into the certificate.	
                             The public key is created automatically
-
+```
 ### 6. Defining few terms used in cfssl 
 
     sign             signs a certificate
