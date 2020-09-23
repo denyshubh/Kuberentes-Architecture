@@ -75,10 +75,50 @@ OUTPUT:
 
 ### The Kubelet Client Certificates
 
-Kubernetes uses a special-purpose authorization mode called Node Authorizer, that specifically authorizes API requests made by Kubelets. In order to be authorized by the Node Authorizer, Kubelets must use a credential that identifies them as being in the system:nodes group, with a username of system:node:<nodeName>. In this section you will create a certificate for each Kubernetes worker node that meets the Node Authorizer requirements.
+Kubernetes uses a special-purpose authorization mode called Node Authorizer, that specifically authorizes API requests made by Kubelets. In order to be authorized by the Node Authorizer, Kubelets must use a credential that identifies them as being in the <em>system:nodes</em> group, with a username of <em>system:node:nodeName</em>. In this section you will create a certificate for each Kubernetes worker node that meets the Node Authorizer requirements.
 
 Generate a certificate and private key for each Kubernetes worker node:
+```
+WORKER0_HOSTNAME=<7896542586.mycloud.com>
+WORKER1_HOSTNAME=<2G5478D5686.mycloud.com>
+INTERNAL0_IP=<PRIVATE IP OF WORKER NODE 0>
+INTERNAL1_IP=<PRIVATE IP OF WORKER NODE 1>
 
+for instance in WORKER0_HOSTNAME WORKER1_HOSTNAME; do
+cat > ${instance}-csr.json <<EOF
+{
+  "CN": "system:node:${instance}",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "IN",
+      "L": "Varanasi",
+      "O": "system:nodes",
+      "OU": "kubernetes the hard way",
+      "ST": "UP"
+    }
+  ]
+}
+EOF
+
+}
+
+cfssl gencert \
+  -remote="localhost:8888" \
+  -hostname=${WORKER0_HOSTNAME},${INTERNAL0_IP}\
+  -profile=kubernetes \
+  ${WORKER0_HOSTNAME}-csr.json | cfssljson -bare ${WORKER0_HOSTNAME}
+
+cfssl gencert \
+  -remote="localhost:8888" \
+  -hostname=${WORKER1_HOSTNAME},${INTERNAL1_IP} \
+  -profile=kubernetes \
+  ${WORKER1_HOSTNAME}-csr.json | cfssljson -bare ${WORKER1_HOSTNAME}
+
+```
 
 ### 2. Kube-API server certificate
 
