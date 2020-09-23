@@ -1,9 +1,31 @@
 
 https://kubernetes.io/docs/setup/best-practices/certificates/
 
-### 8. Generating Client and Server Certificates
+### Generating Client and Server Certificates
 
-In this section you will generate client and server certificates for each Kubernetes component and a client certificate for the Kubernetes admin user.
+In this section we will generate client and server certificates for each Kubernetes component and a client certificate for the Kubernetes admin user.
+
+Kubernetes requires PKI for the following operations:
+
+1. Client certificates for the kubelet to authenticate to the API server <br/>
+2. Server certificate for the <strong> API server endpoint</strong><br/>
+3. Client certificates for administrators of the cluster to authenticate to the API server<br/>
+4. Client certificates for the API server to talk to the kubelets<br/>
+5. Client certificate for the API server to talk to etcd<br/>
+6. Client certificate/kubeconfig for the controller manager to talk to the API server<br/>
+7. Client certificate/kubeconfig for the scheduler to talk to the API server.<br/>
+8. Client and server certificates for the front-proxy<br/>
+
+----------------------------------------------------------------------------------- <br/>
+1. Kube-API Certificate (Server)<br/>
+2. Admin Certificate (Client)<br/>
+3. Kubelet Certificate (Client)<br/>
+4. Kube-proxy Certificate (Client)<br/>
+5. Service-account Certificate<br/>
+6. Worker Node Certificates<br/>
+7. Kube-controller Certificate<br/>
+8. Kube Schedular Certificate<br/>
+
 
 #### 1.  The Admin Client Certificate
 
