@@ -1,0 +1,312 @@
+We are now ready to set up networking in our Kubernetes cluster. This lesson guides you through the process of installing
+Weave Net in the cluster. It also shows you how to test your cluster network to make sure that everything is working as
+expected so far. After completing this lesson, you should have a functioning cluster network within your Kubernetes cluster.
+You can configure Weave Net like this:
+First, log in to both worker nodes and enable IP forwarding:
+sudo sysctl net.ipv4.conf.all.forwarding=1
+echo "net.ipv4.conf.all.forwarding=1" | sudo tee -a /etc/sysctl.conf
+The remaining commands can be done using kubectl. To connect with kubectl, you can either log in to one of the control nodes
+and run kubectl there or open an SSH tunnel for port 6443 to the load balancer server and use kubectl locally.
+You can open the SSH tunnel by running this in a separate terminal. Leave the session open while you are working to keep the
+tunnel active:
+ssh -L 6443:localhost:6443 user@<your Load balancer cloud server public IP>
+Install Weave Net like this:
+Now Weave Net is installed, but we need to test our network to make sure everything is working.
+First, make sure the Weave Net pods are up and running:
+kubectl get pods -n kube-system
+This should return two Weave Net pods, and look something like this:
+NAME READY STATUS RESTARTS AGE
+weave-net-m69xq 2/2 Running 0 11s
+weave-net-vmb2n 2/2 Running 0 11s
+Next, we want to test that pods can connect to each other and that they can connect to services. We will set up two Nginx
+pods and a service for those two pods. Then, we will create a busybox pod and use it to test connectivity to both Nginx pods
+and the service.
+First, create an Nginx deployment with 2 replicas:
+cat << EOF | kubectl apply -f -
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+name: nginx
+spec:
+selector:
+matchLabels:
+run: nginx
+replicas: 2
+kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')&env.
+template:
+metadata:
+labels:
+run: nginx
+spec:
+containers:
+- name: my-nginx
+image: nginx
+ports:
+- containerPort: 80
+EOF
+Next, create a service for that deployment so that we can test connectivity to services as well:
+kubectl expose deployment/nginx
+Now let's start up another pod. We will use this pod to test our networking. We will test whether we can connect to the other
+pods and services from this pod.
+kubectl run busybox --image=radial/busyboxplus:curl --command -- sleep 3600
+POD_NAME=$(kubectl get pods -l run=busybox -o jsonpath="{.items[0].metadata.name}")
+Now let's get the IP addresses of our two Nginx pods:
+kubectl get ep nginx
+There should be two IP addresses listed under ENDPOINTS, for example:
+NAME ENDPOINTS AGE
+nginx 10.200.0.2:80,10.200.128.1:80 50m
+Now let's make sure the busybox pod can connect to the Nginx pods on both of those IP addresses.
+kubectl exec $POD_NAME -- curl <first nginx pod IP address>
+kubectl exec $POD_NAME -- curl <second nginx pod IP address>
+Both commands should return some HTML with the title "Welcome to Nginx!" This means that we can successfully connect to
+other pods.
+Now let's verify that we can connect to services.
+kubectl get svc
+This should display the IP address for our Nginx service. For example, in this case, the IP is 10.32.0.54:
+NAME TYPE CLUSTER-IP EXTERNAL-IP PORT(S) AGE
+kubernetes ClusterIP 10.32.0.1 <none> 443/TCP 1h
+nginx ClusterIP 10.32.0.54 <none> 80/TCP 53m
+Let's see if we can access the service from the busybox pod!
+kubectl exec $POD_NAME -- curl <nginx service IP address>
+This should also return HTML with the title "Welcome to Nginx!"
+This means that we have successfully reached the Nginx service from inside a pod and that our networking configuration is
+working!
+
+
+
+https://www.weave.works/docs/net/latest/kubernetes/kube-addon/
+
+ kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
+
+serviceaccount/weave-net created
+clusterrole.rbac.authorization.k8s.io/weave-net created
+clusterrolebinding.rbac.authorization.k8s.io/weave-net created
+role.rbac.authorization.k8s.io/weave-net created
+rolebinding.rbac.authorization.k8s.io/weave-net created
+daemonset.apps/weave-net created
+
+
+cat << EOF | kubectl apply -f -
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: nginx
+spec:
+  selector:
+    matchLabels:
+      run: nginx
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        run: nginx
+    spec:
+      containers:
+      - name: my-nginx
+        image: nginx
+        ports:
+        - containerPort: 80
+EOF
+
+kubectl expose deployment/nginx
+
+kubectl run busybox --image=radial/busyboxplus:curl --command -- sleep 3600
+
+POD_NAME=$(kubectl get pods -l run=busybox -o jsonpath="{.items[0].metadata.name}")
+
+kubectl get ep nginx
+
+NAME    ENDPOINTS                   AGE
+nginx   10.32.0.2:80,10.44.0.1:80   96s
+
+kubectl exec $POD_NAME -- curl 10.32.0.2:80
+kubectl exec $POD_NAME -- curl 10.44.0.1:80
+
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+
+
+kubectl get svc
+
+kubectl exec $POD_NAME -- curl 10.32.0.92
+
+Failed to connect to 10.32.0.92 port 80: No route to host
+command terminated with exit code 7
+
+
+
+
+ kubectl get events
+LAST SEEN   TYPE      REASON                    OBJECT                              MESSAGE
+54m         Normal    NodeHasSufficientMemory   node/4b0a9a11df1c.mylabserver.com   Node 4b0a9a11df1c.mylabserver.com status is now: NodeHasSufficientMemory
+54m         Normal    NodeHasNoDiskPressure     node/4b0a9a11df1c.mylabserver.com   Node 4b0a9a11df1c.mylabserver.com status is now: NodeHasNoDiskPressure
+54m         Normal    NodeHasSufficientPID      node/4b0a9a11df1c.mylabserver.com   Node 4b0a9a11df1c.mylabserver.com status is now: NodeHasSufficientPID
+54m         Normal    NodeNotReady              node/4b0a9a11df1c.mylabserver.com   Node 4b0a9a11df1c.mylabserver.com status is now: NodeNotReady
+29m         Normal    NodeReady                 node/4b0a9a11df1c.mylabserver.com   Node 4b0a9a11df1c.mylabserver.com status is now: NodeReady
+12m         Normal    Starting                  node/4b0a9a11df1c.mylabserver.com   Starting kubelet.
+12m         Warning   InvalidDiskCapacity       node/4b0a9a11df1c.mylabserver.com   invalid capacity 0 on image filesystem
+11m         Normal    NodeHasSufficientMemory   node/4b0a9a11df1c.mylabserver.com   Node 4b0a9a11df1c.mylabserver.com status is now: NodeHasSufficientMemory
+12m         Normal    NodeHasNoDiskPressure     node/4b0a9a11df1c.mylabserver.com   Node 4b0a9a11df1c.mylabserver.com status is now: NodeHasNoDiskPressure
+12m         Normal    NodeHasSufficientPID      node/4b0a9a11df1c.mylabserver.com   Node 4b0a9a11df1c.mylabserver.com status is now: NodeHasSufficientPID
+12m         Normal    NodeAllocatableEnforced   node/4b0a9a11df1c.mylabserver.com   Updated Node Allocatable limit across pods
+12m         Normal    Starting                  node/4b0a9a11df1c.mylabserver.com   Starting kube-proxy.
+11m         Normal    RegisteredNode            node/4b0a9a11df1c.mylabserver.com   Node 4b0a9a11df1c.mylabserver.com event: Registered Node 4b0a9a11df1c.mylabserver.com in Controller
+<unknown>   Normal    Scheduled                 pod/busybox                         Successfully assigned default/busybox to ce589041881c.mylabserver.com
+20m         Normal    Pulling                   pod/busybox                         Pulling image "radial/busyboxplus:curl"
+20m         Normal    Pulled                    pod/busybox                         Successfully pulled image "radial/busyboxplus:curl"
+20m         Normal    Created                   pod/busybox                         Created container busybox
+20m         Normal    Started                   pod/busybox                         Started container busybox
+10m         Normal    SandboxChanged            pod/busybox                         Pod sandbox changed, it will be killed and re-created.
+10m         Normal    TaintManagerEviction      pod/busybox                         Cancelling deletion of Pod default/busybox
+10m         Normal    Pulled                    pod/busybox                         Container image "radial/busyboxplus:curl" already present on machine
+10m         Normal    Created                   pod/busybox                         Created container busybox
+10m         Normal    Started                   pod/busybox                         Started container busybox
+54m         Normal    NodeHasSufficientMemory   node/ce589041881c.mylabserver.com   Node ce589041881c.mylabserver.com status is now: NodeHasSufficientMemory
+54m         Normal    NodeHasNoDiskPressure     node/ce589041881c.mylabserver.com   Node ce589041881c.mylabserver.com status is now: NodeHasNoDiskPressure
+54m         Normal    NodeHasSufficientPID      node/ce589041881c.mylabserver.com   Node ce589041881c.mylabserver.com status is now: NodeHasSufficientPID
+54m         Normal    NodeNotReady              node/ce589041881c.mylabserver.com   Node ce589041881c.mylabserver.com status is now: NodeNotReady
+28m         Normal    NodeReady                 node/ce589041881c.mylabserver.com   Node ce589041881c.mylabserver.com status is now: NodeReady
+11m         Normal    RegisteredNode            node/ce589041881c.mylabserver.com   Node ce589041881c.mylabserver.com event: Registered Node ce589041881c.mylabserver.com in Controller
+11m         Normal    Starting                  node/ce589041881c.mylabserver.com   Starting kube-proxy.
+11m         Normal    Starting                  node/ce589041881c.mylabserver.com   Starting kubelet.
+11m         Warning   InvalidDiskCapacity       node/ce589041881c.mylabserver.com   invalid capacity 0 on image filesystem
+11m         Normal    NodeHasSufficientMemory   node/ce589041881c.mylabserver.com   Node ce589041881c.mylabserver.com status is now: NodeHasSufficientMemory
+11m         Normal    NodeHasNoDiskPressure     node/ce589041881c.mylabserver.com   Node ce589041881c.mylabserver.com status is now: NodeHasNoDiskPressure
+11m         Normal    NodeHasSufficientPID      node/ce589041881c.mylabserver.com   Node ce589041881c.mylabserver.com status is now: NodeHasSufficientPID
+11m         Warning   Rebooted                  node/ce589041881c.mylabserver.com   Node ce589041881c.mylabserver.com has been rebooted, boot id: 0df698e4-c7ee-42fd-9dbc-2412db4c809f
+11m         Normal    NodeNotReady              node/ce589041881c.mylabserver.com   Node ce589041881c.mylabserver.com status is now: NodeNotReady
+11m         Normal    NodeAllocatableEnforced   node/ce589041881c.mylabserver.com   Updated Node Allocatable limit across pods
+11m         Normal    NodeReady                 node/ce589041881c.mylabserver.com   Node ce589041881c.mylabserver.com status is now: NodeReady
+<unknown>   Normal    Scheduled                 pod/nginx-7866ff8b79-mtds9          Successfully assigned default/nginx-7866ff8b79-mtds9 to 4b0a9a11df1c.mylabserver.com
+21m         Normal    Pulling                   pod/nginx-7866ff8b79-mtds9          Pulling image "nginx"
+21m         Normal    Pulled                    pod/nginx-7866ff8b79-mtds9          Successfully pulled image "nginx"
+21m         Normal    Created                   pod/nginx-7866ff8b79-mtds9          Created container my-nginx
+21m         Normal    Started                   pod/nginx-7866ff8b79-mtds9          Started container my-nginx
+11m         Normal    SandboxChanged            pod/nginx-7866ff8b79-mtds9          Pod sandbox changed, it will be killed and re-created.
+11m         Normal    Pulling                   pod/nginx-7866ff8b79-mtds9          Pulling image "nginx"
+11m         Normal    Pulled                    pod/nginx-7866ff8b79-mtds9          Successfully pulled image "nginx"
+11m         Normal    Created                   pod/nginx-7866ff8b79-mtds9          Created container my-nginx
+11m         Normal    Started                   pod/nginx-7866ff8b79-mtds9          Started container my-nginx
+<unknown>   Normal    Scheduled                 pod/nginx-7866ff8b79-x87jv          Successfully assigned default/nginx-7866ff8b79-x87jv to ce589041881c.mylabserver.com
+21m         Normal    Pulling                   pod/nginx-7866ff8b79-x87jv          Pulling image "nginx"
+21m         Normal    Pulled                    pod/nginx-7866ff8b79-x87jv          Successfully pulled image "nginx"
+21m         Normal    Created                   pod/nginx-7866ff8b79-x87jv          Created container my-nginx
+21m         Normal    Started                   pod/nginx-7866ff8b79-x87jv          Started container my-nginx
+10m         Normal    SandboxChanged            pod/nginx-7866ff8b79-x87jv          Pod sandbox changed, it will be killed and re-created.
+10m         Normal    TaintManagerEviction      pod/nginx-7866ff8b79-x87jv          Cancelling deletion of Pod default/nginx-7866ff8b79-x87jv
+10m         Normal    Pulling                   pod/nginx-7866ff8b79-x87jv          Pulling image "nginx"
+10m         Normal    Pulled                    pod/nginx-7866ff8b79-x87jv          Successfully pulled image "nginx"
+10m         Normal    Created                   pod/nginx-7866ff8b79-x87jv          Created container my-nginx
+10m         Normal    Started                   pod/nginx-7866ff8b79-x87jv          Started container my-nginx
+21m         Normal    SuccessfulCreate          replicaset/nginx-7866ff8b79         Created pod: nginx-7866ff8b79-x87jv
+21m         Normal    SuccessfulCreate          replicaset/nginx-7866ff8b79         Created pod: nginx-7866ff8b79-mtds9
+21m         Normal    ScalingReplicaSet         deployment/nginx                    Scaled up replica set nginx-7866ff8b79 to 2
+
+
+
+kubectl logs -n kube-system weave-net-1jkl6 weave
+
+
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service-stable
+spec:
+  type: NodePort
+  selector:
+    app: myportfolio
+    type: frontend
+    track: stable
+  ports:
+  - protocol: TCP
+    port: 80
+    nodePort: 30008
+    targetPort: 4000
+
+---
+  
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portfolio-deployment-canary
+  labels:
+    app: myportfolio
+    type: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: myportfolio
+      type: frontend
+      track: stable
+  template:
+    metadata:
+      labels:
+        app: myportfolio
+        type: frontend
+        track: stable
+    spec:
+      containers:
+      - name: portfolio
+        image: denyshubh/portfolio
+        ports:
+        - containerPort: 4000
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 4000
+          initialDelaySeconds: 15
+          timeoutSeconds: 1
+          periodSeconds: 10
+
+
+
+sudo ETCDCTL_API=3 etcdctl get \
+--endpoints=https://127.0.0.1:2379 \
+--cacert=/etc/etcd/ca.pem \
+--cert=/etc/etcd/kubernetes.pem \
+--key=/etc/etcd/kubernetes-key.pem\
+/registry/secrets/default/kubernetes-the-hard-way | hexdump -C
+
+
+
+sudo crictl -r unix:///var/run/containerd/containerd.sock info
+
+
+
+POD_CIDR=$(curl -s http://169.254.169.254/latest/user-data/ \
+  | tr "|" "\n" | grep "^pod-cidr" | cut -d"=" -f2)
+echo "${POD_CIDR}"
+
+
+ip addr list
+
+https://gravitational.com/blog/troubleshooting-kubernetes-networking/
+
+https://kubernetes.io/docs/concepts/services-networking/connect-applications-service/

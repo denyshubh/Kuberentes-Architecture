@@ -1,0 +1,24 @@
+### Install CFSSL & CFSSLJSON
+
+1. download the binaraies
+```wget -q --show-progress --https-only --timestamping \
+  https://storage.googleapis.com/kubernetes-the-hard-way/cfssl/1.4.1/linux/cfssl \
+  https://storage.googleapis.com/kubernetes-the-hard-way/cfssl/1.4.1/linux/cfssljson```
+
+2. give executable permission
+```chmod +x cfssl cfssljson```
+
+3. move the binaries to /usr/local/bin 
+```sudo mv cfssl cfssljson /usr/local/bin/```
+
+### Install Kubectl
+
+```wget https://storage.googleapis.com/kubernetes-release/release/v1.18.6/bin/linux/amd64/kubectl
+chmod +x kubectl
+sudo mv kubectl /usr/local/bin/```
+
+Verify the installations
+1. cfssl version
+2. cfssljson --version
+3. kubectl version --client
+
