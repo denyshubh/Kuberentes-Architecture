@@ -15,17 +15,17 @@ chmod +x cfssl cfssljson
 ### 3. move these exe files to /usr/local/bin directory
 
 ```
-sudo mv cfssl cfssljson /usr/local/bin/
-```
+sudo mv cfssl cfssljson /usr/local/bin/```
+
 ### 4. What is the use of cfssljson ?
+The cfssljson program, which takes the JSON output from the cfssl programs and writes certificates, keys, CSRs, and bundles to disk.
 
-    The cfssljson program, which takes the JSON output from the cfssl programs and writes certificates, keys, CSRs, and bundles to disk.
+You can create a brand new CA with CFSSL using the -initca option. As we saw above, this takes a JSON blob with the certificate request, and creates a new CA key and certificate:
 
-    You can create a brand new CA with CFSSL using the -initca option. As we saw above, this takes a JSON blob with the certificate request, and creates a new CA key and certificate:
+```$ cfssl gencert -initca ca_csr.json```
 
-    ```$ cfssl gencert -initca ca_csr.json```
+This will return a CA certificate and CA key that is valid for signing. The CA is meant to function as an internal tool for creating certificates. 
 
-    This will return a CA certificate and CA key that is valid for signing. The CA is meant to function as an internal tool for creating certificates. 
 ### 5. How to check the supported values for csr and config ?
 
     $ cfssl print-defaults config
@@ -83,37 +83,37 @@ A CSR or Certificate Signing request is a block of encoded text that is given to
 
 #### What is contained in a CSR?
 Name	                    Explanation	                                Examples
+| :-------------------------|:----------------------------------------:| --------------------------:|
 Common Name	                FQDN of your server.                        *.google.com
                             This must match exactly what you            mail.google.com
-                            type in your web browser or you will 
+                            type in your web browser or you will        
                             receive a name mismatch error.	
-
-
+|                           |                                          |
 Organization	            The legal name of your organization.        Google Inc.
                             This should not be abbreviated and should 
                             include suffixes such as Inc, Corp, or LLC.	
-
-
+                           
+|                           |                                          |
 Organizational Unit	        The division of your organization handling  Information Technology
                             the certificate.	                        IT Department
 
-
+|                           |                                          |
 City/Locality	            The city where your organization is         Mountain View 
                             located.
 
-                            
+|                           |                                          |    
 State/County/Region	        The state/region where your organization    California
                             is located. This shouldn't be abbreviated.	
 
-
+|                           |                                          |                
 Country	                    The two-letter ISO code for the country     IN
                             where your organization is location.	    US
 
-
+|                           |                                          |
 Email address	            An email address used to contact your       webmaster@google.com
                             organization.	
 
-
+|                           |                                          | 
 Public Key	                The public key that will go into the certificate.	
                             The public key is created automatically
 
